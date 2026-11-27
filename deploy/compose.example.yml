@@ -1,0 +1,36 @@
+# サーバー用のひな形。サーバーでは brikrs/ ディレクトリにこのファイルを compose.yml として置く想定
+# - イメージは開発機でビルドして deploy/push-image.sh で持ち込む（サーバー上でビルドしない）
+# - DB は既存の MariaDB に brikrs データベースを足す（.env に DATABASE_URL を書く）
+# - リバースプロキシ（nginx など）と同じ Docker ネットワークに入れ、コンテナの 8080 番へ中継する
+services:
+  brikrs_app:
+    image: brikrs:${BRIKRS_TAG:-latest}
+    container_name: brikrs_app
+    env_file: .env          # DATABASE_URL=mysql://brikrs:<password>@<MariaDB のホスト名>:3306/brikrs
+    environment:
+      PUBLIC_URL: https://wiki.example.org   # フィード・共有カード（OGP）の絶対 URL
+      # OGP_DENY_IPS: 203.0.113.5   # Web ブックマークで接続しない宛先（このサーバー自身）。未設定なら PUBLIC_URL のホスト
+      SITE_NAME: BrikRS   # サイト名の初期値（管理画面で変更可）
+      COOKIE_SECURE: "true"   # HTTPS で公開するとき
+      TRUST_PROXY: "true"     # リバースプロキシの X-Real-IP / X-Forwarded-For を信用する（ログイン失敗の回数制限に使う）
+      TOTP_ISSUER: BrikRS     # 認証アプリに表示される名前
+      TRASH_RETENTION_DAYS: "30"
+      REVISION_KEEP: "100"
+      LOG_RETENTION_DAYS: "180"   # アクセスログ・ログイン試行の記録を残す日数
+      GUEST_IP_RETENTION_DAYS: "90"   # ゲストコメント・リアクションの IP を残す日数（承認されないコメントもこの日数で削除）
+      # 承認待ちコメントのメール通知（任意。SMTP_PASSWD などは .env に書いて env_file で渡す。確認は brikrs mail-test）
+      # SMTP_SERVER: "mail.example.org"
+      # SMTP_PORT: "465"
+      # SMTP_USER: "brikrs@example.org"
+      # COMMENT_NOTIFY_TO: "webmaster@example.org"
+      SEED_SAMPLES: "true"    # 新しい DB の初回起動でサンプルページを作る（不要なら false）
+    volumes:
+      - ./data:/data          # アップロード画像（data/uploads）と、サイトのアイコン（data/branding、任意）。事前に sudo chown -R 65532:65532 data
+    networks:
+      - proxy
+    mem_limit: 128m
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true            # リバースプロキシのネットワーク名に合わせる

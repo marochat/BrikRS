@@ -1,0 +1,45 @@
+# ローカルで本番と同じ形（アプリもコンテナ）で動かす
+#   docker compose up -d --build
+#   docker compose exec brikrs_app /app/brikrs create-user admin --admin   ← パスワードを入力
+#   http://127.0.0.1:8081
+# 開発用（cargo run / npm run dev）の DB は compose.dev.yml
+name: brikrs
+
+services:
+  brikrs_app:
+    build: .
+    image: brikrs:latest
+    container_name: brikrs_app
+    environment:
+      DATABASE_URL: mysql://brikrs:brikrsdev@brikrs_db:3306/brikrs
+      COOKIE_SECURE: "false"
+    ports:
+      - "127.0.0.1:8081:8080"
+    volumes:
+      - brikrs_data:/data
+    depends_on:
+      brikrs_db:
+        condition: service_healthy
+    mem_limit: 128m
+    restart: unless-stopped
+
+  brikrs_db:
+    image: mariadb:11.4
+    container_name: brikrs_db
+    environment:
+      MARIADB_ROOT_PASSWORD: devroot
+      MARIADB_DATABASE: brikrs
+      MARIADB_USER: brikrs
+      MARIADB_PASSWORD: brikrsdev
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - brikrs_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+    restart: unless-stopped
+
+volumes:
+  brikrs_data:
+  brikrs_db:

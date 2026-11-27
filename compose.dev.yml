@@ -1,0 +1,23 @@
+# ローカル開発用 MariaDB（本番の MariaDB 11.4 に合わせる）
+# cargo run / npm run dev で開発するときに使う。全部コンテナで動かすなら compose.yml
+services:
+  brikrs_dev_db:
+    image: mariadb:11.4
+    container_name: brikrs_dev_db
+    environment:
+      MARIADB_ROOT_PASSWORD: devroot
+      MARIADB_DATABASE: brikrs
+      MARIADB_USER: brikrs
+      MARIADB_PASSWORD: brikrsdev
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    ports:
+      - "127.0.0.1:3307:3306"
+    volumes:
+      - brikrs_dev_db:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      retries: 20
+
+volumes:
+  brikrs_dev_db:

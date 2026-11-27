@@ -1,0 +1,13 @@
+/backend/target
+/backend/.env
+/backend/data
+/frontend/node_modules
+/frontend/dist
+/.vscode
+
+# macOS の Finder が作るファイル
+.DS_Store
+
+# 開発メモ（非公開。控えは ../brikrs-private/）
+CLAUDE.md
+CLAUDE.local.md

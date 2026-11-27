@@ -1,0 +1,7 @@
+**/node_modules
+**/target
+**/dist
+backend/.env
+backend/data
+.git
+*.md
