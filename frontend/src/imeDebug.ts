@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import type { BlockNoteEditor } from '@blocknote/core'
 
 /*
- * IME の調査用ログ（変換中の Backspace でひらがなのまま確定してしまう問題。TODO_REVIEW.md 参照）。
+ * IME の調査用ログ（変換中の Backspace でひらがなのまま確定してしまう問題）。
  * ブラウザのコンソールで localStorage.setItem('brikrs.imeDebug', '1') としてから読み込み直したときだけ動く。
  * イベント・トランザクション・DOM の変化を時刻つきで console に出し、window.__imeLog にも貯める
  * （copy(JSON.stringify(__imeLog)) でまとめて写せる）

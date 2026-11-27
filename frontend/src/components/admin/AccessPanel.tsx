@@ -5,6 +5,9 @@ import { navigate } from '../../router'
 import { eachDay } from '../../time'
 import { DailyChart, MeterList, StatTile } from './Charts'
 
+/** このサイトの中のパスか（`//host`・`/\host` は別のサイトになる。0.16.0 までに記録された値もあるので表示でも確かめる） */
+const isSitePath = (path: string) => path.startsWith('/') && !path.startsWith('//') && !path.includes('\\')
+
 /** アクセス解析：閲覧者（bot と編集者を除く）のページビュー・訪問者・よく見られているページ・参照元 */
 export default function AccessPanel({ days }: { days: number }) {
   const [data, setData] = useState<AccessSummary | null>(null)
@@ -60,7 +63,7 @@ export default function AccessPanel({ days }: { days: number }) {
                   key: p.path,
                   title: `${p.path}（ユニーク訪問者 ${p.unique_visitors.toLocaleString()}）`,
                   value: p.pageviews,
-                  label: (
+                  label: isSitePath(p.path) ? (
                     <a
                       href={p.path}
                       onClick={(e) => {
@@ -70,6 +73,8 @@ export default function AccessPanel({ days }: { days: number }) {
                     >
                       {p.title !== null ? `${p.icon || '📄'} ${displayTitle(p.title)}` : p.path}
                     </a>
+                  ) : (
+                    <span>{p.path}</span>
                   ),
                 }))}
               />

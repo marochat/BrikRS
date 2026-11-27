@@ -109,6 +109,15 @@ fn valid_id(s: &str) -> bool {
     s.len() == 36 && s.chars().all(|c| c.is_ascii_hexdigit() || c == '-')
 }
 
+/// このサイトの中のパスだけを記録する。`//host` と `/\host` はブラウザが別のサイトとして扱うので断る
+/// （管理画面のアクセス解析でリンクになるため）
+fn valid_path(s: &str) -> bool {
+    s.starts_with('/')
+        && !s.starts_with("//")
+        && !s.contains('\\')
+        && !s.chars().any(char::is_control)
+}
+
 /// 画面遷移ごとに呼ばれる（ログインしていなくても呼べる）。編集者自身の閲覧は数えない
 pub async fn pageview(
     State(st): State<AppState>,
@@ -118,7 +127,7 @@ pub async fn pageview(
     Json(req): Json<PageviewReq>,
 ) -> AppResult<StatusCode> {
     if cu.is_some()
-        || !req.path.starts_with('/')
+        || !valid_path(&req.path)
         || req.path.len() > 255
         || !valid_id(&req.visitor_id)
         || !valid_id(&req.session_id)
@@ -497,6 +506,17 @@ mod tests {
         assert!(!is_bot(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140.0 Safari/537.36"
         ));
+    }
+
+    #[test]
+    fn only_same_site_paths() {
+        assert!(valid_path("/"));
+        assert!(valid_path("/p/12?month=2026-10"));
+        assert!(!valid_path("p/12"));
+        assert!(!valid_path("//evil.example"));
+        assert!(!valid_path("/\\evil.example"));
+        assert!(!valid_path("/p/1\\x"));
+        assert!(!valid_path("/p/1\n"));
     }
 
     #[test]
