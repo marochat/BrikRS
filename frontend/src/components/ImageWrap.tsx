@@ -71,17 +71,19 @@ function WrapButton({ side }: { side: 'left' | 'right' }) {
   )
 }
 
+/**
+ * ツールバーの中身。モジュールの外側で一度だけ定義する（描画のたびに関数を作って渡すと、別の部品として
+ * ツールバーごと作り直され、キャプションの入力欄などのポップアップが1文字打つごとに閉じてしまう）
+ */
+function BrikToolbarItems() {
+  const items = getFormattingToolbarItems()
+  // 画像の配置（左・中央・右）の後ろに並べる
+  const at = items.findIndex((i) => i.key === 'textAlignRightButton') + 1
+  items.splice(at, 0, <WrapButton side="left" key="wrapLeftButton" />, <WrapButton side="right" key="wrapRightButton" />)
+  return <FormattingToolbar>{items}</FormattingToolbar>
+}
+
 /** 既定の書式ツールバーに回り込みのボタンを足したもの（BlockNoteView に formattingToolbar={false} を付けて中に置く） */
 export function BrikFormattingToolbar() {
-  return (
-    <FormattingToolbarController
-      formattingToolbar={() => {
-        const items = getFormattingToolbarItems()
-        // 画像の配置（左・中央・右）の後ろに並べる
-        const at = items.findIndex((i) => i.key === 'textAlignRightButton') + 1
-        items.splice(at, 0, <WrapButton side="left" key="wrapLeftButton" />, <WrapButton side="right" key="wrapRightButton" />)
-        return <FormattingToolbar>{items}</FormattingToolbar>
-      }}
-    />
-  )
+  return <FormattingToolbarController formattingToolbar={BrikToolbarItems} />
 }

@@ -6,6 +6,7 @@ import {
   RemoveBlockItem,
   SideMenu,
   SideMenuController,
+  type SideMenuProps,
   TableColumnHeaderItem,
   TableRowHeaderItem,
   useBlockNoteEditor,
@@ -47,6 +48,11 @@ function BrikDragHandleMenu() {
   )
 }
 
+/** つまみの中身。描画のたびに作り直されないよう、モジュールの外側で定義する（ImageWrap.tsx の BrikToolbarItems と同じ） */
+function BrikSideMenuItems(props: SideMenuProps) {
+  return <SideMenu {...props} dragHandleMenu={BrikDragHandleMenu} />
+}
+
 /**
  * ブロックの左のつまみ（BlockNoteView に sideMenu={false} を付けて中に置く）。
  * あわせて、表の「枠線なし」をエディタの見た目に反映する（BorderlessTable.ts の syncTableBorders）
@@ -63,5 +69,5 @@ export function BrikSideMenu() {
       off?.()
     }
   }, [editor])
-  return <SideMenuController sideMenu={(props) => <SideMenu {...props} dragHandleMenu={BrikDragHandleMenu} />} />
+  return <SideMenuController sideMenu={BrikSideMenuItems} />
 }
